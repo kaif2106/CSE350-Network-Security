@@ -1,1 +1,1 @@
-Python implementation of DES (Data encryption standard) from scratch
+Assignments done in the course CSE350-Network Security
