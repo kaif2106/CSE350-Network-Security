@@ -2,11 +2,60 @@
 # round operation - swap, F box
 # key generation
 
-from Crypto.Protocol.KDF import PBKDF2
-from Crypto.Hash import SHA512
-from Crypto.Random import get_random_bytes
+# from Crypto.Protocol.KDF import PBKDF2
+# from Crypto.Hash import SHA512
+# from Crypto.Random import get_random_bytes
 import base64
+def hex2bin(s):
+    mp = {'0': "0000",
+          '1': "0001",
+          '2': "0010",
+          '3': "0011",
+          '4': "0100",
+          '5': "0101",
+          '6': "0110",
+          '7': "0111",
+          '8': "1000",
+          '9': "1001",
+          'A': "1010",
+          'B': "1011",
+          'C': "1100",
+          'D': "1101",
+          'E': "1110",
+          'F': "1111"}
+    bin = ""
+    for i in range(len(s)):
+        bin = bin + mp[s[i]]
+    return bin
 
+def bin2hex(s):
+    mp = {"0000": '0',
+          "0001": '1',
+          "0010": '2',
+          "0011": '3',
+          "0100": '4',
+          "0101": '5',
+          "0110": '6',
+          "0111": '7',
+          "1000": '8',
+          "1001": '9',
+          "1010": 'A',
+          "1011": 'B',
+          "1100": 'C',
+          "1101": 'D',
+          "1110": 'E',
+          "1111": 'F'}
+    hex = ""
+    for i in range(0, len(s), 4):
+        ch = ""
+        ch = ch + s[i]
+        ch = ch + s[i + 1]
+        ch = ch + s[i + 2]
+        ch = ch + s[i + 3]
+        hex = hex + mp[ch]
+ 
+    return hex
+ 
 def generate_subkeys(key):
     # Perform PC-1 permutation/parity drop on 64-bit key
     pc1_table = [57, 49, 41, 33, 25, 17, 9,
@@ -111,20 +160,19 @@ def sbox_substitution(inp):
           0,  12, 7, 1,  15, 13, 8,  10, 3,  7, 4, 12, 5,
           6,  11, 0, 14, 9,  2,  7,  11, 4,  1, 9, 12, 14,
           2,  0,  6, 10, 13, 15, 3,  5,  8,  2, 1, 14, 7,
-          4,  10, 8, 13, 15, 12, 9,  0,  3,  5, 6, 11 ]
-    ]
+          4,  10, 8, 13, 15, 12, 9,  0,  3,  5, 6, 11 ] ]
     binary_list = [inp[i:i+6] for i in range(0, len(inp), 6)]
     result = ""
     c = 0
     for i in binary_list:
-        row = int(i[1:5], 2)
-        col = int(i[0]+i[5], 2)
-        ind = (col*15)+row
+        col = int(i[1:5], 2)
+        row = int(i[0]+i[5], 2)
+        ind = (row*16)+col
         result+='{0:04b}'.format(s[c][ind])
         c+=1
     return result
 
-def encrypt(binary_data, binary_key):
+def encrypt(binary_data, subkeys):
         
     # Perform initial permutation on input data
     ip_table = [58, 50, 42, 34, 26, 18, 10, 2,
@@ -139,11 +187,10 @@ def encrypt(binary_data, binary_key):
     binary_data_permuted = ""
     for i in range(64):
         binary_data_permuted+=binary_data[ip_table[i]-1]
-    # print(binary_data)
-    # print(binary_data_permuted)
+    
+    #print(bin2hex(binary_data_permuted))
 
     # Generate 16 48-bit subkeys using the key schedule algorithm
-    subkeys = generate_subkeys(binary_key)
     # for subkey in subkeys:
     #     print(subkey)
     #     print(len(subkey))
@@ -158,15 +205,16 @@ def encrypt(binary_data, binary_key):
         # XOR the expanded right half with the current subkey
         subkey = subkeys[i]
         xor_result = xor(expanded_right, subkey)
+        # print(bin2hex(xor_result))
+        ## CORRECT UP TILL HERE
         # Perform substitution using S-boxes
         sbox_result = sbox_substitution(xor_result)
-        # print(sbox_result)
+        # print(bin2hex(sbox_result))
         # print(len(sbox_result))
         # Perform permutation using a fixed permutation table
-        p_table = [16, 7, 20, 21, 29, 12, 28, 17,
-                1, 15, 23, 26, 5, 18, 31, 10,
-                2, 8, 24, 14, 32, 27, 3, 9,
-                19, 13, 30, 6, 22, 11, 4, 25]
+        p_table = [16, 7, 20, 21, 29, 12, 28, 17, 1, 15, 23,
+                   26, 5, 18, 31, 10, 2, 8, 24, 14, 32, 27,
+                   3, 9, 19, 13, 30, 6, 22, 11, 4, 25]
         permuted_result=""
         for j in range(32):
             permuted_result+=sbox_result[p_table[j]-1]
@@ -177,10 +225,13 @@ def encrypt(binary_data, binary_key):
             binary_data_permuted = xor_result + right_half
         else:
             binary_data_permuted = right_half + xor_result
-        # print(binary_data_permuted)
+
+        
+        # print("Round", i, "->", bin2hex(binary_data_permuted), bin2hex(subkey))
         # print(len(binary_data_permuted))
         #if i != 15:
         #    binary_data_permuted, right_half = right_half, binary_data_permuted
+
 
 
     # Perform final permutation on the output data
@@ -204,19 +255,28 @@ if __name__ =='__main__':
     binary_data = ''.join(format(byte, '08b') for byte in data)
     binary_key = ''.join(format(byte, '08b') for byte in key)
 
-    print("Bin data: "+binary_data)
-    cipher = encrypt(binary_data, binary_key)
-    print(cipher)
-    print("key: "+binary_key)
+    print(binary_data)
+    subkeys = generate_subkeys(binary_key)
+    cipher = encrypt(binary_data, subkeys)
+    #print(cipher)
+
+    #print("key: "+bin2hex(binary_key))
     key_list = [binary_key[i:i+8] for i in range(0, len(binary_key), 8)]
     rev_key=""
     for i in range(len(key_list)-1, -1, -1):
         rev_key+=key_list[i]
-    #rev_key = binary_key[::-1]
-    print("rev_key: "+rev_key)
-    print(encrypt(cipher, rev_key))
-    # print(binary_key)
-    # print(len(binary_key))
-    # print(chr(int("01100101", 2)))
+    
+    rev_keys = subkeys[::-1]
+    print(binary_data==encrypt(cipher, rev_keys))
 
-
+    # pt = "123456ABCD132536"
+    # key = "AABB09182736CCDD"
+    
+    # # Key generation
+    # # --hex to binary
+    # binary_key = hex2bin(key)
+    # binary_pt = hex2bin(pt)
+    # print("Encryption")
+    # cipher_text = encrypt(binary_pt, binary_key)
+    # cc = bin2hex(cipher_text)
+    # print("Cipher Text : ", cc)
