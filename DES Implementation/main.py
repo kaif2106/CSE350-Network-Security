@@ -7,8 +7,6 @@ from Crypto.Hash import SHA512
 from Crypto.Random import get_random_bytes
 import base64
 
-
-
 def generate_subkeys(key):
     # Perform PC-1 permutation/parity drop on 64-bit key
     pc1_table = [57, 49, 41, 33, 25, 17, 9,
@@ -126,20 +124,8 @@ def sbox_substitution(inp):
         c+=1
     return result
 
-
-if __name__ =='__main__':
-    # byte object
-    data = b"qwertyui"
-    key = b"eightbit"
-
-    binary_data = ''.join(format(byte, '08b') for byte in data)
-    binary_key = ''.join(format(byte, '08b') for byte in key)
-
-    # print(binary_key)
-    # print(len(binary_key))
-    # print(chr(int("01100101", 2)))
-
-
+def encrypt(binary_data, binary_key):
+        
     # Perform initial permutation on input data
     ip_table = [58, 50, 42, 34, 26, 18, 10, 2,
                 60, 52, 44, 36, 28, 20, 12, 4,
@@ -207,6 +193,30 @@ if __name__ =='__main__':
     cipher = ""
     for i in range(64):
         cipher+=binary_data_permuted[final_perm[i]-1]
-    print(len(cipher))
+    return cipher
+
+
+if __name__ =='__main__':
+    # byte object
+    data = b"qwertyui"
+    key = b"eightbit"
+
+    binary_data = ''.join(format(byte, '08b') for byte in data)
+    binary_key = ''.join(format(byte, '08b') for byte in key)
+
+    print("Bin data: "+binary_data)
+    cipher = encrypt(binary_data, binary_key)
     print(cipher)
-    
+    print("key: "+binary_key)
+    key_list = [binary_key[i:i+8] for i in range(0, len(binary_key), 8)]
+    rev_key=""
+    for i in range(len(key_list)-1, -1, -1):
+        rev_key+=key_list[i]
+    #rev_key = binary_key[::-1]
+    print("rev_key: "+rev_key)
+    print(encrypt(cipher, rev_key))
+    # print(binary_key)
+    # print(len(binary_key))
+    # print(chr(int("01100101", 2)))
+
+
