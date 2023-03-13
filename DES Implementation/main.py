@@ -44,11 +44,11 @@ def encrypt(binary_data, subkeys, flag=True):
         else:
             binary_data_permuted = right_half + xor_result
 
-        if flag and (i==1 or i==14):
-            print("Round", i, ":", int(binary_data_permuted[:32],2), int(binary_data_permuted[32:],2))
+        if flag and (i==1):
+            print("Encryption Round", i, ":", bin2str(binary_data_permuted[:32]), bin2str(binary_data_permuted[32:]))
 
-        if not flag and (i==2 or i==15):
-            print("Round", i, ":", int(binary_data_permuted[:32],2), int(binary_data_permuted[32:],2))
+        if not flag and (i==15):
+            print("Decryption Round", i, ":", bin2str(binary_data_permuted[:32]), bin2str(binary_data_permuted[32:]))
 
     # Perform final permutation on the output data
     cipher = ""
@@ -63,20 +63,17 @@ def decrypt(cipher, subkeys):
 
 if __name__ =='__main__':
     # 64 bit data and key
-    data = "abcdefgh"
+    data = "warinsea"
     key = "qwertyui"
 
-    # print("Original plaintext: " + data)
+    print("Original plaintext:", data)
 
     binary_data = str2bin(data)
     binary_key = str2bin(key)
     subkeys = generate_subkeys(binary_key)
 
     cipher = encrypt(binary_data, subkeys)
-    # print("Cipher: " + cipher)
+    print("Cipher:", bin2str(cipher))
     
     decrypted_text = decrypt(cipher, subkeys)
-    # print(decrypted_text)
-    decrypted_str = bin2str(decrypted_text)
-    print("Decrypted string: " + decrypted_str)
-    
+    print("Decrypted string:", bin2str(decrypted_text))
