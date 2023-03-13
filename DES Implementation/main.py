@@ -25,6 +25,7 @@ def encrypt(binary_data, subkeys, flag=True):
     for i in range(1,17):
         # Divide the 64-bit input into two 32-bit halves
         left_half, right_half = binary_data_permuted[:32], binary_data_permuted[32:]
+        
         # Perform expansion and permutation on the right half
         expanded_right = expand_permutation(right_half)
         # XOR the expanded right half with the current subkey
@@ -33,11 +34,10 @@ def encrypt(binary_data, subkeys, flag=True):
         # Perform substitution using S-boxes
         sbox_result = sbox_substitution(xor_result)
         # Perform permutation using a fixed permutation table
-        permuted_result=""
-        for j in range(32):
-            permuted_result+=sbox_result[p_table[j]-1]
+        permuted_result = permutation(sbox_result)
         # XOR the left half with the permuted result
         xor_result = xor(left_half, permuted_result)
+
         # Combine the left and right halves and swap them
         if i==16:
             binary_data_permuted = xor_result + right_half
@@ -78,5 +78,5 @@ if __name__ =='__main__':
     decrypted_text = decrypt(cipher, subkeys)
     # print(decrypted_text)
     decrypted_str = bin2str(decrypted_text)
-    # print("Decrypted string: " + decrypted_str)
+    print("Decrypted string: " + decrypted_str)
     

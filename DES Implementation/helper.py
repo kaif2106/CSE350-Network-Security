@@ -94,3 +94,9 @@ def sbox_substitution(inp):
         result+='{0:04b}'.format(s_box[c][ind])
         c+=1
     return result
+
+def permutation(inp):
+    permuted_result=""
+    for j in range(32):
+      permuted_result+=inp[p_table[j]-1]
+    return permuted_result
