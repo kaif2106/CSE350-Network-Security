@@ -44,10 +44,10 @@ def encrypt(binary_data, subkeys, flag=True):
         else:
             binary_data_permuted = right_half + xor_result
 
-        if flag and (i==1):
+        if flag and (i==1 or i==14):
             print("Encryption Round", i, ":", bin2str(binary_data_permuted[:32]), bin2str(binary_data_permuted[32:]))
 
-        if not flag and (i==15):
+        if not flag and (i==15 or i==2):
             print("Decryption Round", i, ":", bin2str(binary_data_permuted[:32]), bin2str(binary_data_permuted[32:]))
 
     # Perform final permutation on the output data
