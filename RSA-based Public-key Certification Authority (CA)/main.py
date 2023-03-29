@@ -76,7 +76,7 @@ class client:
         print(self.messages)
 
 
-C = CA(3, 67, 79)
+C = CA(2106, 67, 79)
 clients = {}
 clients[1] = client(1, 61, 53, C.public_key)
 clients[2] = client(2, 83, 97, C.public_key)
@@ -92,10 +92,9 @@ while True:
         clients[i] = client(i, p, q, C.public_key)
         C.set_PUs(i, clients[i].public_key)
     else:
-        c2 = 1
-        while c2!=5:
+        while True:
             c2 = int(input("1. Request CA for certificate\n2. Check available certificates\n3. Send message\n4. Check messages\n5. Logout\nEnter: "))
-            if c2==1:
+            if c2 == 1:
                 r = int(input("Enter ID of client: "))
                 request = clients[i].get_request(r)
                 cert = C.get_certificate(request)
@@ -105,9 +104,9 @@ while True:
                     clients[i].add_cert(r, cert)
                 else:
                     print("Certificate of client "+str(r)+" is incorrect")
-            if c2==2:
+            if c2 == 2:
                 clients[i].show_certificates()
-            if c2==3:
+            if c2 == 3:
                 r = int(input("Enter ID of client: "))
                 if clients[i].check_cert(r):
                     cert = clients[i].get_cert(r)
@@ -115,7 +114,9 @@ while True:
                         message = input("Enter message: ")
                         encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], message)
                         clients[r].recieve_message(encrypted_message)
-                    else: print("Certificate is incorrect or has expired. Please create a new certificate")
-                else: print("Certificate does not exist")
-            if c2==4:
+                    else: print("Certificate of client "+str(r)+" is incorrect or has expired. Please create a new certificate")
+                else: print("Certificate of client "+str(r)+" does not exist")
+            if c2 == 4:
                 clients[i].show_messages()
+            if c2 == 5:
+                break
