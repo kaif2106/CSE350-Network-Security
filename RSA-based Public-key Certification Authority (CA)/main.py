@@ -12,7 +12,6 @@ import my_rsa as rsa
 import time
 import hashlib
 
-
 def sha256(input_text): #Hashing function - SHA256
     input_text = input_text.encode()
     sha = hashlib.sha256()
@@ -46,6 +45,7 @@ class client:
         self.q = q
         self.CA_PU = CA_PU
         self.certificates = {}
+        self.messages = []
         self.public_key, self.private_key =  rsa.generate_keypair(p,q)
     
     def get_request(self, IDx):
@@ -55,9 +55,7 @@ class client:
         self.certificates[ID] = cert
     
     def check_cert(self, ID):
-        if ID in self.certificates.keys():
-            return True
-        return False
+        return ID in self.certificates.keys()
 
     def get_cert(self, ID):
         return self.certificates[ID]
@@ -67,6 +65,15 @@ class client:
     
     def show_certificates(self):
         print(self.certificates)
+
+    def encrypt(self, key, message):
+        return rsa.encrypt(key, str(message))
+    
+    def recieve_message(self, encrypted_message):
+        self.messages.append(rsa.decrypt(self.private_key, encrypted_message))
+    
+    def show_messages(self):
+        print(self.messages)
 
 
 C = CA(3, 67, 79)
@@ -103,30 +110,12 @@ while True:
             if c2==3:
                 r = int(input("Enter ID of client: "))
                 if clients[i].check_cert(r):
-                    if clients[i].verify_cert(clients[i].get_cert(r)):
+                    cert = clients[i].get_cert(r)
+                    if clients[i].verify_cert(cert):
                         message = input("Enter message: ")
+                        encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], message)
+                        clients[r].recieve_message(encrypted_message)
                     else: print("Certificate is incorrect or has expired. Please create a new certificate")
                 else: print("Certificate does not exist")
-            
-                
-
-
-
-A = client(1, 61, 53, C.public_key)
-B = client(2, 83, 97, C.public_key)
-PUs = {A.ID:A.public_key, B.ID:B.public_key}
-C.set_PUs(PUs)
-request = A.get_request(2)
-cert = C.get_certificate(request)
-if A.verify_cert(cert):
-    print("Y")
-else: print("N")
-
-
-#cer = C.get_certificate(A)
-#print(sha256(str(cer["Certificate"])) == rsa.decrypt(C.private_key, cer["Hash"]))
-
-
-
-
-
+            if c2==4:
+                clients[i].show_messages()
