@@ -6,12 +6,12 @@
 ![image](https://user-images.githubusercontent.com/29958259/228499533-760764b5-4fdc-42bc-b136-2f594433bbc5.png)
 
 
-CERTA = ENCPR-CA (IDA, PUA, TA, DURA, IDCA),
+*CERTA = ENCPR-CA (IDA, PUA, TA, DURA, IDCA)*<br><br>
 where (you decide the format for each of these):
-• PR-CA is private key of certification authority (PU-CA is public key of certification authority)
-• IDA is user ID of A, IDCA is the ID of the CA,
-• PUA is public key of A,
-• TA is time of issuance of certificate, and DURA is the duration for which the certificate is valid.
+- PR-CA is private key of certification authority (PU-CA is public key of certification authority)
+- IDA is user ID of A, IDCA is the ID of the CA,
+- PUA is public key of A,
+- TA is time of issuance of certificate, and DURA is the duration for which the certificate is valid.
 
 ### Assumptions
 1. That clients already (somehow) know their own [private-key, public-key], but do not have their own
