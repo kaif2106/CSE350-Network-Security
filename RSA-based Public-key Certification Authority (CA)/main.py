@@ -70,7 +70,7 @@ class client:
         return rsa.encrypt(key, str(message))
     
     def recieve_message(self, encrypted_message):
-        self.messages.append(rsa.decrypt(self.private_key, encrypted_message))
+        self.messages.append(eval(rsa.decrypt(self.private_key, encrypted_message)))
     
     def show_messages(self):
         print(self.messages)
@@ -112,7 +112,8 @@ while True:
                     cert = clients[i].get_cert(r)
                     if clients[i].verify_cert(cert):
                         message = input("Enter message: ")
-                        encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], message)
+                        message_dict = {"ID":i, "Message":message}
+                        encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], str(message_dict))
                         clients[r].recieve_message(encrypted_message)
                     else: print("Certificate of client "+str(r)+" is incorrect or has expired. Please create a new certificate")
                 else: print("Certificate of client "+str(r)+" does not exist")
