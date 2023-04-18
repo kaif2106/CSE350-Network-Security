@@ -26,6 +26,7 @@ class CA:
         self.p = p
         self.q = q
         self.PUs = {}
+        self.certificates = {}
         self.public_key, self.private_key = rsa.generate_keypair(p,q)
     
     def set_PUs(self, ID, PU):
@@ -34,8 +35,17 @@ class CA:
     def get_certificate(self, request):
         decrypted_request = rsa.decrypt(self.private_key, request)
         i = int(decrypted_request)
+        if i in self.certificates.keys():
+            return self.certificates[i]
+        return None
+
+    def make_certificate(self, request):
+        decrypted_request = rsa.decrypt(self.private_key, request)
+        i = int(decrypted_request)
         info = {"ID":i, "CA ID":self.ID, "PU":self.PUs[i], "T":int(time.time()), "DUR":60}
         certificate = rsa.encrypt(self.private_key, sha256(str(info)))
+        self.certificates[i] = {"Certificate":info, "Hash":certificate}
+        print("Certificate created")
         return {"Certificate":info, "Hash":certificate}
 
 class client:
@@ -50,6 +60,10 @@ class client:
     
     def get_request(self, IDx):
         return rsa.encrypt(self.CA_PU, str(IDx))
+    
+    def get_my_cert(self, cert):
+        self.my_certificate = cert
+        self.certificates[self.ID] = cert
     
     def add_cert(self, ID, cert):
         self.certificates[ID] = cert
@@ -70,10 +84,15 @@ class client:
         return rsa.encrypt(key, str(message))
     
     def recieve_message(self, encrypted_message):
-        self.messages.append(rsa.decrypt(self.private_key, encrypted_message))
+        self.messages.append(eval(rsa.decrypt(self.private_key, encrypted_message)))
     
     def show_messages(self):
         print(self.messages)
+
+    def check_validity(self):
+        if self.my_certificate["Certificate"]["T"]+self.my_certificate["Certificate"]["DUR"]>time.time():
+            return "Valid"
+        return "Expired"
 
 
 C = CA(2106, 67, 79)
@@ -93,7 +112,7 @@ while True:
         C.set_PUs(i, clients[i].public_key)
     else:
         while True:
-            c2 = int(input("1. Request CA for certificate\n2. Check available certificates\n3. Send message\n4. Check messages\n5. Logout\nEnter: "))
+            c2 = int(input("1. Request CA for certificate\n2. Check available certificates\n3. Make/Update my certificate\n4. Check my certificate validity\n5. Send message\n6. Check messages\n7. Logout\nEnter: "))
             if c2 == 1:
                 r = int(input("Enter ID of client: "))
                 request = clients[i].get_request(r)
@@ -107,16 +126,21 @@ while True:
             if c2 == 2:
                 clients[i].show_certificates()
             if c2 == 3:
+                clients[i].get_my_cert(C.make_certificate(clients[i].get_request(i)))
+            if c2 == 4:
+                print(clients[i].check_validity())
+            if c2 == 5:   
                 r = int(input("Enter ID of client: "))
                 if clients[i].check_cert(r):
                     cert = clients[i].get_cert(r)
                     if clients[i].verify_cert(cert):
                         message = input("Enter message: ")
-                        encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], message)
+                        message_dict = {"ID":i, "Message":message}
+                        encrypted_message = clients[i].encrypt(cert["Certificate"]["PU"], str(message_dict))
                         clients[r].recieve_message(encrypted_message)
-                    else: print("Certificate of client "+str(r)+" is incorrect or has expired. Please create a new certificate")
+                    else: print("Certificate of client "+str(r)+" is incorrect or has expired")
                 else: print("Certificate of client "+str(r)+" does not exist")
-            if c2 == 4:
+            if c2 == 6:
                 clients[i].show_messages()
-            if c2 == 5:
+            if c2 == 7:
                 break

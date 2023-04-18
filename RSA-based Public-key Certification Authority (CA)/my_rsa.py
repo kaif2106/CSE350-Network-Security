@@ -4,10 +4,10 @@ from math import gcd
 def generate_keypair(p, q):
     n = p * q
     lambda_n = (p - 1) * (q - 1)
-    e = random.randrange(1, lambda_n)
+    e = random.randrange(2, lambda_n)
     g = gcd(e, lambda_n)
     while g != 1:
-        e = random.randrange(1, lambda_n)
+        e = random.randrange(2, lambda_n)
         g = gcd(e, lambda_n)
     d = inverse_mod(e, lambda_n)
     return ((n,e), (n,d))
