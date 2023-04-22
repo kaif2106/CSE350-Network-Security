@@ -12,8 +12,8 @@ class tsa:
     def getPU(self):
         return self.public_key
 
-    def time_stamp(self, hash):
-        hash = rsa.decrypt(self.private_key, hash)
+    def time_stamp(self, ehash):
+        hash = rsa.decrypt(self.private_key, ehash)
         time = rsa.decrypt(self.my_gmt_server.getPU(), self.my_gmt_server.get_gmt())
         message = hash+time
         hashed_message = hashing.hash_text(message)

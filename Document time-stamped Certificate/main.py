@@ -2,6 +2,7 @@ from tss import tsa
 import hashing
 from ca import CA
 import my_rsa as rsa
+import json
 
 _CA = CA(67, 79)
 _TSA = tsa(61, 53)
@@ -31,6 +32,18 @@ class user:
         return hash==decrypted_ts_hash
 
 A = user()
-ts = A.get_time_stamp("test_file.csv")
-print(ts)
-print(A.check_ts("test_file.csv", ts))
+while True:
+    ch = int(input(("1. Timestamp document\n2. Verify document with timestamp\n3. Exit\n")))
+    if ch==1:
+        filename = input("Filename: ")
+        ts = A.get_time_stamp(filename)
+        saveas = input("Save timestamp as: ")
+        with open(f'{saveas}.json', 'w') as f:
+            json.dump(ts, f)
+    elif ch==2:
+        filename = input("Filename: ")
+        ts_filename = input("Timestamp file name: ")
+        with open(f'{ts_filename}.json', 'r') as f:
+            ts = json.load(f)
+        print(A.check_ts(filename, ts))
+    else: break
