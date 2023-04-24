@@ -14,3 +14,8 @@ This application relates to securely time-stamping a document that one may have 
 3. How do you ensure privacy, in that the server does not see/keep the original document?
 4. How do you share the document with others in a secure manner with the GMT date/time preserved, and its integrity un-disturbed?
 5. How does one ensure that the user (both the owner and anyone verifying the date/time) uses the correct “public-key” of the server stamping/signing the “GMT date/time”.
+
+CA -> User: {TSA_PU || E(CA_PR, HASH(TSA_PU))}
+User -> TSA: E(TSA_PU, HASH(file))
+GMT_server -> TSA: E(GMT_PR, current_time)
+TSA -> User: {E(TSA_PR, HASH(HASH(file)+current_time)) || current_time}
